@@ -1,0 +1,21 @@
+@import url("../../dist/web/tokens.css");
+
+:root {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+.token-surface {
+  background: var(--color-surface-base, #ffffff);
+  color: var(--color-text-primary, #111111);
+}
+
+.token-button-primary {
+  background: var(--color-brand-primary, #0050b3);
+  color: #ffffff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 6px;
+}
