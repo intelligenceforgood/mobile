@@ -1,5 +1,9 @@
 # i4g Mobile
 
+[![iOS](https://img.shields.io/badge/iOS-SwiftUI-blue.svg)](https://developer.apple.com/xcode/swiftui/)
+[![Android](https://img.shields.io/badge/Android-Jetpack%20Compose-green.svg)](https://developer.android.com/jetpack/compose)
+[![Design Tokens](https://img.shields.io/badge/Shared-Design%20Tokens-informational.svg)](shared/design-tokens/README.md)
+
 Top-level workspace for native clients (iOS + Android). Mirrors the separation used by `core/` (Python), `ui/` (Next.js), and `infra/` (Terraform).
 
 ## Structure
