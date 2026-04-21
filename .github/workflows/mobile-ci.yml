@@ -1,0 +1,65 @@
+name: Mobile CI
+
+on:
+  push:
+    paths:
+      - "app/**"
+      - "shared/**"
+      - ".github/workflows/mobile-ci.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - "shared/**"
+      - ".github/workflows/mobile-ci.yml"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Build design tokens
+        run: |
+          cd shared/design-tokens
+          node scripts/build.js
+
+      - name: Install app dependencies
+        run: pnpm -C app install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm -C app lint
+
+      - name: Typecheck
+        run: pnpm -C app typecheck
+
+      - name: Test
+        run: pnpm -C app test
+
+  security-grep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Forbid console.log of tokens/PII
+        run: |
+          ! grep -r 'console\.log' app/src/ \
+            | grep -E 'token|password|secret|email|Bearer'
+
+      - name: Forbid raw fetch() outside src/api/
+        run: |
+          ! grep -rn '\bfetch(' app/src/ \
+            | grep -v '^app/src/api/'
+
+      - name: Forbid AsyncStorage
+        run: |
+          ! grep -rn 'AsyncStorage' app/src/
