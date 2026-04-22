@@ -4,16 +4,17 @@ import type { ReviewDetail } from '../types';
 
 interface Props {
   review: ReviewDetail;
+  onDecide?: () => void;
 }
 
 const STATUS_SHOW_DECIDE = new Set(['pending', 'in_review', 'new']);
 
 /**
- * Case Detail header: review ID, case ID, status, priority badge, and "Decide…" stub.
- * The Decide button is visible but disabled when status is pending/in_review/new.
- * Full wiring (Decision Sheet) is Sprint 4.
+ * Case Detail header: review ID, case ID, status, priority badge, and "Decide…" button.
+ * The Decide button is visible when status is pending/in_review/new.
+ * Pass `onDecide` to enable the button and handle taps.
  */
-export function CaseHeader({ review }: Props) {
+export function CaseHeader({ review, onDecide }: Props) {
   const theme = useTheme();
   const priorityColors = theme.color.priority;
   const priorityColor = priorityColors[review.priority as keyof typeof priorityColors] ?? priorityColors.medium;
@@ -44,12 +45,24 @@ export function CaseHeader({ review }: Props) {
 
         {showDecide && (
           <TouchableOpacity
-            style={[styles.decideButton, { borderColor: theme.color.action.primary }]}
-            disabled
+            style={[
+              styles.decideButton,
+              { borderColor: theme.color.action.primary },
+              !onDecide && styles.decideButtonDisabled,
+            ]}
+            disabled={!onDecide}
+            onPress={onDecide}
             testID="decide-button"
-            accessibilityLabel="Decide — coming in Sprint 4"
+            accessibilityLabel="Decide"
           >
-            <Text style={[styles.decideText, { color: theme.color.text.muted }]}>Decide… (Sprint 4)</Text>
+            <Text
+              style={[
+                styles.decideText,
+                { color: onDecide ? theme.color.action.primary : theme.color.text.muted },
+              ]}
+            >
+              Decide…
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -99,6 +112,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 5,
+  },
+  decideButtonDisabled: {
     opacity: 0.5,
   },
   decideText: {

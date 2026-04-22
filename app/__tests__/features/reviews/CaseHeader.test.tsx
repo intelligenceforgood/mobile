@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { CaseHeader } from '../../../src/features/reviews/components/CaseHeader';
 import type { ReviewDetail } from '../../../src/features/reviews/types';
 
@@ -51,5 +51,14 @@ describe('CaseHeader', () => {
   it('shows priority badge text', () => {
     render(<CaseHeader review={makeReview({ priority: 'critical' })} />);
     expect(screen.getByText('critical')).toBeTruthy();
+  });
+
+  it('decide button is enabled and calls onDecide when provided', () => {
+    const onDecide = jest.fn();
+    render(<CaseHeader review={makeReview({ status: 'new' })} onDecide={onDecide} />);
+    const btn = screen.getByTestId('decide-button');
+    expect(btn.props.accessibilityState?.disabled).toBeFalsy();
+    fireEvent.press(btn);
+    expect(onDecide).toHaveBeenCalledTimes(1);
   });
 });

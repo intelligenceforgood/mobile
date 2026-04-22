@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { tokens } from '@/design/tokens';
@@ -10,12 +10,14 @@ import type { EvidenceDocument } from '@/features/evidence/types';
 import { AuditLogSection } from '@/features/reviews/components/AuditLogSection';
 import { CaseClassificationSection } from '@/features/reviews/components/CaseClassificationSection';
 import { CaseHeader } from '@/features/reviews/components/CaseHeader';
+import { DecisionSheet } from '@/features/reviews/components/DecisionSheet';
 import { CaseSummarySection } from '@/features/reviews/components/CaseSummarySection';
 import { CaseTimelineSection } from '@/features/reviews/components/CaseTimelineSection';
 import { useCaseFull } from '@/features/reviews/queries';
 import type { CaseDetail, CaseTimelineEntry, ReviewDetail } from '@/features/reviews/types';
 import { useReportsLibrary } from '@/features/reports/queries';
 import { SectionErrorBoundary } from '@/lib/SectionErrorBoundary';
+import { useStore } from '@/store/ui';
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
@@ -61,6 +63,9 @@ export default function CaseDetailScreen() {
   const router = useRouter();
   const theme = useTheme();
 
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const pushToast = useStore((s) => s.pushToast);
+
   const { review, caseDetail, audit } = useCaseFull(reviewId ?? '');
 
   // Evidence depends on caseId from review
@@ -85,6 +90,16 @@ export default function CaseDetailScreen() {
       router.push(`/case/${reviewId}/report?reportId=${firstReportId}`);
     }
   }, [router, reviewId, firstReportId]);
+
+  const handleDecisionSuccess = useCallback(
+    (decision: 'approve' | 'reject') => {
+      pushToast({ variant: 'success', message: decision === 'approve' ? 'Approved' : 'Rejected' });
+      setSheetOpen(false);
+      // useDecide already invalidates reviews-queue and review-detail — no extra cache work here.
+      // TODO Sprint 5: add filter-aware auto-pop to queue when case status no longer matches filter.
+    },
+    [pushToast],
+  );
 
   if (!reviewId) {
     return (
@@ -111,7 +126,7 @@ export default function CaseDetailScreen() {
               onRetry={() => review.refetch()}
             />
           ) : review.data ? (
-            <CaseHeader review={review.data as ReviewDetail} />
+            <CaseHeader review={review.data as ReviewDetail} onDecide={() => setSheetOpen(true)} />
           ) : null}
         </SectionCard>
       </SectionErrorBoundary>
@@ -193,6 +208,16 @@ export default function CaseDetailScreen() {
           ) : null}
         </SectionCard>
       </SectionErrorBoundary>
+
+      {/* ─── Decision Sheet ────────────────────────────────────── */}
+      {reviewId && (
+        <DecisionSheet
+          visible={sheetOpen}
+          reviewId={reviewId}
+          onClose={() => setSheetOpen(false)}
+          onSuccess={handleDecisionSuccess}
+        />
+      )}
 
       {/* ─── View Report Button ──────────────────────────────────── */}
       {hasReport && (

@@ -1,11 +1,12 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Slot, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { auth } from '@/auth';
 import { ErrorBoundary } from '@/lib/error-boundary';
 import { queryClient } from '@/lib/query-client';
+import { ToastHost } from '@/lib/ToastHost';
 import { useStore } from '@/store/ui';
 
 /**
@@ -43,8 +44,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <QueryClientProvider client={queryClient}>
+        <ToastHost />
         <ErrorBoundary>
-          <Slot />
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+            <Stack.Screen name="case/[id]" options={{ title: 'Case', headerBackTitle: 'Back' }} />
+          </Stack>
         </ErrorBoundary>
       </QueryClientProvider>
     </GestureHandlerRootView>

@@ -66,6 +66,30 @@ appId: com.i4g.mobile
     id: 'case-detail-screen'
     timeout: 5000
 
+# ── Sprint 4: Approve / Reject decision flow ───────────────────────────────
+
+# Tap the Decide button (only present for decidable statuses — guard with optional)
+- tapOn:
+    id: 'decide-button'
+    optional: true
+
+# If the Decision Sheet opened, assert the segmented control is visible
+- assertVisible:
+    id: 'decision-segment-approve'
+    timeout: 3000
+    optional: true
+
+# Submit the decision
+- tapOn:
+    id: 'decision-submit'
+    optional: true
+
+# Success toast should appear
+- assertVisible:
+    id: 'toast-success'
+    timeout: 5000
+    optional: true
+
 # Tap "View Report" if visible (only shown when a report exists)
 - tapOn:
     id: 'view-report'
