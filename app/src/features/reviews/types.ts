@@ -4,9 +4,6 @@ import { z } from 'zod';
 /**
  * Zod schemas for the reviews feature and shared auth types.
  * Shapes verified against i4g-local on 2026-04-21.
- * Fields marked TODO(sprint1-verify) could not be confirmed during Sprint 1.
- *
- * See: planning/proposals/mobile-prototype/sprint1-endpoint-verification.md
  */
 
 // ---------------------------------------------------------------------------

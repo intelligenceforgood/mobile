@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -17,6 +17,7 @@ import { QueueRow } from '@/features/reviews/components/QueueRow';
 import { SearchBox } from '@/features/reviews/components/SearchBox';
 import { useReviewsQueue } from '@/features/reviews/queries';
 import type { ReviewQueueItem } from '@/features/reviews/types';
+import { useStore } from '@/store/ui';
 
 const PAGE_SIZE = 25;
 
@@ -42,7 +43,14 @@ export default function QueueScreen() {
   const listRef = useRef<FlatList<ReviewQueueItem> | null>(null);
 
   const [filter, setFilter] = useState<FilterBarValue>({ status: undefined, priority: undefined });
+  const setCurrentQueueFilter = useStore((s) => s.setCurrentQueueFilter);
   const [searchQ, setSearchQ] = useState('');
+
+  // Keep the global store in sync so other screens (e.g. case/[id]) can do filter-aware routing.
+  useEffect(() => {
+    setCurrentQueueFilter(filter);
+  }, [filter, setCurrentQueueFilter]);
+
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [showScrollTop, setShowScrollTop] = useState(false);
 

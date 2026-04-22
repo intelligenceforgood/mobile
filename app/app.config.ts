@@ -6,6 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'I4G',
   slug: 'i4g-mobile',
   scheme: process.env.EXPO_PUBLIC_OAUTH_REDIRECT_SCHEME,
+  plugins: [...(config.plugins ?? []), '@sentry/react-native'],
   ios: { bundleIdentifier: 'com.intelligenceforgood.i4g' },
   android: { package: 'com.intelligenceforgood.i4g' },
   extra: {

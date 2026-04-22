@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { auth } from '@/auth';
 import { ErrorBoundary } from '@/lib/error-boundary';
+import { initSentry } from '@/lib/sentry';
 import { queryClient } from '@/lib/query-client';
 import { ToastHost } from '@/lib/ToastHost';
 import { useStore } from '@/store/ui';
@@ -19,6 +20,10 @@ export default function RootLayout() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const user = useStore((s) => s.user);
   const router = useRouter();
+
+  useEffect(() => {
+    initSentry();
+  }, []);
 
   useEffect(() => {
     auth.initialize().then(() => {

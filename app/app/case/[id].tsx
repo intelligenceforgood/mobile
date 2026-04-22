@@ -65,6 +65,7 @@ export default function CaseDetailScreen() {
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const pushToast = useStore((s) => s.pushToast);
+  const currentQueueFilter = useStore((s) => s.currentQueueFilter);
 
   const { review, caseDetail, audit } = useCaseFull(reviewId ?? '');
 
@@ -96,9 +97,17 @@ export default function CaseDetailScreen() {
       pushToast({ variant: 'success', message: decision === 'approve' ? 'Approved' : 'Rejected' });
       setSheetOpen(false);
       // useDecide already invalidates reviews-queue and review-detail — no extra cache work here.
-      // TODO Sprint 5: add filter-aware auto-pop to queue when case status no longer matches filter.
+      // After a decision, the case status changes to approved/rejected. If the queue is filtered
+      // by a status that no longer matches (e.g., status: 'new'), pop back to the queue.
+      const activeStatusFilter = currentQueueFilter.status;
+      const newStatusAfterDecision = decision === 'approve' ? 'approved' : 'rejected';
+      const willMatchFilter =
+        !activeStatusFilter || activeStatusFilter === newStatusAfterDecision;
+      if (!willMatchFilter) {
+        router.replace('/(tabs)/queue');
+      }
     },
-    [pushToast],
+    [pushToast, currentQueueFilter, router],
   );
 
   if (!reviewId) {

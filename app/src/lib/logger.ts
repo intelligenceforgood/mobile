@@ -12,8 +12,19 @@ function isProduction(): boolean {
 function format(level: LogLevel, tag: string, data: unknown): void {
   const redacted = redactObject(data);
   if (isProduction()) {
-    // In production: route to Sentry as a breadcrumb if Sentry is available.
-    // Sentry init happens in Sprint 5; for now this is a no-op.
+    // In production: route to Sentry as a breadcrumb.
+    // Lazily import sentryEnabled to avoid a circular dep at module load time.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { sentryEnabled } = require('./sentry') as { sentryEnabled: boolean };
+    if (sentryEnabled) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Sentry = require('@sentry/react-native') as typeof import('@sentry/react-native');
+      Sentry.addBreadcrumb({
+        level: level as import('@sentry/react-native').SeverityLevel,
+        category: tag,
+        data: redacted as Record<string, unknown>,
+      });
+    }
     return;
   }
   const prefix = `[${level.toUpperCase()}] ${tag}`;

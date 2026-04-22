@@ -4,7 +4,6 @@ import { z } from 'zod';
 /**
  * Zod schemas for the evidence feature.
  * Shapes verified against i4g-local on 2026-04-22.
- * See: planning/proposals/mobile-prototype/sprint3-endpoint-verification.md
  */
 
 // ---------------------------------------------------------------------------

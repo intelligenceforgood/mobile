@@ -4,12 +4,10 @@ import { z } from 'zod';
 /**
  * Dashboard counts shape.
  *
- * TODO(sprint1-verify): The real endpoint is GET /dashboard/overview, which returns
+ * The real endpoint is GET /dashboard/overview, which returns
  * { metrics: [{label, value, change}], alerts: [], activity: [...] }.
- * This placeholder maps to the old TDD §6 shape; the real shape is in DashboardOverview below.
- * Sprint 2 will replace this with DashboardOverview once the Dashboard screen is built out.
- *
- * See: planning/proposals/mobile-prototype/sprint1-endpoint-verification.md
+ * This legacy shape is retained for backwards compatibility; DashboardOverview below is
+ * the canonical shape used by the Dashboard screen.
  */
 export const DashboardCounts = z.object({
   pending: z.number(),

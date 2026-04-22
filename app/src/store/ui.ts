@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { config } from '@/config';
 
 export type Toast = {
   id: string;
@@ -12,6 +13,12 @@ export type User = {
   roles: string[];
 };
 
+/** Minimal queue filter shape — mirrors FilterBarValue from FilterBar component. */
+export type QueueFilter = {
+  status: string | undefined;
+  priority: string | undefined;
+};
+
 type UiState = {
   toasts: Toast[];
   pushToast: (toast: Omit<Toast, 'id'>) => void;
@@ -20,6 +27,14 @@ type UiState = {
   user: User | null;
   setUser: (user: User) => void;
   clearUser: () => void;
+
+  /** Whether Sentry error reporting is enabled at runtime. Initialised from config.sentryDsn. */
+  sentryEnabled: boolean;
+  setSentryEnabled: (enabled: boolean) => void;
+
+  /** The filter currently active in the queue tab. Updated by QueueScreen on each filter change. */
+  currentQueueFilter: QueueFilter;
+  setCurrentQueueFilter: (filter: QueueFilter) => void;
 };
 
 export const useStore = create<UiState>()((set) => ({
@@ -36,4 +51,10 @@ export const useStore = create<UiState>()((set) => ({
   user: null,
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
+
+  sentryEnabled: !!config.sentryDsn,
+  setSentryEnabled: (enabled) => set({ sentryEnabled: enabled }),
+
+  currentQueueFilter: { status: undefined, priority: undefined },
+  setCurrentQueueFilter: (filter) => set({ currentQueueFilter: filter }),
 }));
