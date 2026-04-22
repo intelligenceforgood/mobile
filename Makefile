@@ -39,6 +39,11 @@ android-fresh: ## Like android, but kills any running Metro first and clears cac
 	-pkill -f "expo start" 2>/dev/null; true
 	cd app && pnpm expo start --dev-client --android --clear
 
+sync-ip: ## Update .env.local API URL to current LAN IP (for physical device testing)
+	$(eval LAN_IP := $(shell ipconfig getifaddr en0))
+	@sed -i '' 's|EXPO_PUBLIC_API_BASE_URL=.*|EXPO_PUBLIC_API_BASE_URL=http://$(LAN_IP):8000|' app/.env.local
+	@echo "Set EXPO_PUBLIC_API_BASE_URL=http://$(LAN_IP):8000"
+
 tokens: ## Rebuild design tokens (generates dist/tokens.ts)
 	cd shared/design-tokens && node scripts/build.js
 
