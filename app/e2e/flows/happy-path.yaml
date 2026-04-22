@@ -1,0 +1,26 @@
+appId: com.i4g.mobile
+---
+- launchApp
+
+# Wait for the sign-in screen to appear
+- assertVisible:
+    text: 'Continue as Local Analyst'
+    timeout: 5000
+
+# Tap the local analyst shortcut to bypass Google SSO
+- tapOn:
+    text: 'Continue as Local Analyst'
+
+# Dashboard should load — assert at least one metric card is visible
+- assertVisible:
+    id: 'metrics-grid'
+    timeout: 8000
+
+# Navigate to the Reviews Queue tab
+- tapOn:
+    text: 'Queue'
+
+# At least one queue row should be visible (requires local-aio with seeded data)
+- assertVisible:
+    id: 'load-more'
+    timeout: 8000

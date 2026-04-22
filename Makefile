@@ -4,42 +4,51 @@ SIMULATOR_APP := /Applications/Xcode.app/Contents/Developer/Applications/Simulat
 
 # ── Simulator lifecycle ────────────────────────────────────────────────────────
 
-.PHONY: sim-open sim-close sim-list
+.PHONY: sim-open sim-close sim-list sim-kill
 
 sim-open: ## Boot the iOS Simulator (opens last-used device)
 	open $(SIMULATOR_APP)
 
-sim-close: ## Shut down all running simulators
+sim-close: ## Shut down all running simulators and quit Simulator.app (full stop, like Android emulator)
 	xcrun simctl shutdown all
+	-killall Simulator 2>/dev/null; true
 
 sim-list: ## List available simulator devices
 	xcrun simctl list devices available
 
 # ── App development ───────────────────────────────────────────────────────────
 
-.PHONY: ios android tokens install
+.PHONY: ios-build ios ios-fresh ios-url android-build android android-fresh android-url sync-ip tokens install
 
-ios-build: ## FIRST TIME ONLY — compile native Xcode project and install on Simulator (~5-10 min)
+ios-url: ## Patch .env.local API URL → http://localhost:8000 (iOS Simulator host) — auto-called by ios targets
+	@sed -i '' 's|EXPO_PUBLIC_API_BASE_URL=.*|EXPO_PUBLIC_API_BASE_URL=http://localhost:8000|' app/.env.local
+	@echo "→ EXPO_PUBLIC_API_BASE_URL=http://localhost:8000"
+
+android-url: ## Patch .env.local API URL → http://10.0.2.2:8000 (Android Emulator host) — auto-called by android targets
+	@sed -i '' 's|EXPO_PUBLIC_API_BASE_URL=.*|EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000|' app/.env.local
+	@echo "→ EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000"
+
+ios-build: ios-url ## FIRST TIME ONLY — compile native Xcode project and install on Simulator (~5-10 min)
 	cd app && pnpm run run:ios
 
-ios: ## Start Metro + connect to installed dev build (run ios-build first if not yet installed)
+ios: ios-url ## Start Metro + connect to installed dev build (run ios-build first if not yet installed)
 	cd app && pnpm run dev:ios
 
-ios-fresh: ## Like ios, but kills any running Metro first and clears cache (use after config changes)
+ios-fresh: ios-url ## Like ios, but kills any running Metro first and clears cache (use after config changes)
 	-pkill -f "expo start" 2>/dev/null; true
 	cd app && pnpm expo start --dev-client --ios --clear
 
-android-build: ## FIRST TIME ONLY — compile native Android project and install on Emulator
+android-build: android-url ## FIRST TIME ONLY — compile native Android project and install on Emulator
 	cd app && pnpm run run:android
 
-android: ## Start Metro + connect to installed dev build (run android-build first if not yet installed)
+android: android-url ## Start Metro + connect to installed dev build (run android-build first if not yet installed)
 	cd app && pnpm run dev:android
 
-android-fresh: ## Like android, but kills any running Metro first and clears cache
+android-fresh: android-url ## Like android, but kills any running Metro first and clears cache
 	-pkill -f "expo start" 2>/dev/null; true
 	cd app && pnpm expo start --dev-client --android --clear
 
-sync-ip: ## Update .env.local API URL to current LAN IP (for physical device testing)
+sync-ip: ## Update .env.local API URL to current LAN IP (for physical device testing — overrides ios-url/android-url)
 	$(eval LAN_IP := $(shell ipconfig getifaddr en0))
 	@sed -i '' 's|EXPO_PUBLIC_API_BASE_URL=.*|EXPO_PUBLIC_API_BASE_URL=http://$(LAN_IP):8000|' app/.env.local
 	@echo "Set EXPO_PUBLIC_API_BASE_URL=http://$(LAN_IP):8000"

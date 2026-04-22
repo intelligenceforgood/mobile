@@ -1,21 +1,46 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback } from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { useStore } from '@/store/ui';
-import { useWhoAmI } from '@/features/reviews/queries';
 import { mapErrorToBanner } from '@/api/errors';
+import { useTheme } from '@/design/theme';
+import { ActivityRow } from '@/features/dashboard/components/ActivityRow';
+import { MetricCard } from '@/features/dashboard/components/MetricCard';
+import { useDashboard } from '@/features/dashboard/queries';
+import { useWhoAmI } from '@/features/reviews/queries';
+import { useStore } from '@/store/ui';
+import type { DashboardMetric } from '@/features/dashboard/types';
 
-/**
- * Dashboard screen — Sprint 1.
- * Renders "Signed in as {user.name}" from the Zustand store.
- * Calls useWhoAmI() to hydrate with real backend data; shows a loading skeleton
- * while pending and an error banner on failure.
- */
+function SkeletonBlock({ width }: { width: string }) {
+  const theme = useTheme();
+  return (
+    <View
+      style={[
+        skStyles.block,
+        { backgroundColor: theme.color.border, width: width as `${number}%` },
+      ]}
+    />
+  );
+}
+
+const skStyles = StyleSheet.create({
+  block: { height: 16, borderRadius: 4, marginBottom: 8 },
+});
+
 export default function DashboardScreen() {
+  const theme = useTheme();
   const queryClient = useQueryClient();
   const storeUser = useStore((s) => s.user);
   const setUser = useStore((s) => s.setUser);
 
-  const { data: whoami, isLoading, isError, error } = useWhoAmI();
+  const { data: whoami, isLoading: whoamiLoading, isError: whoamiError, error: whoamiErr } = useWhoAmI();
+  const { data: overview, isLoading: overviewLoading, isError: overviewError, error: overviewErr, isFetching } = useDashboard();
 
   // Hydrate the store user from whoami when it resolves.
   if (whoami && (!storeUser || storeUser.email !== whoami.email)) {
@@ -26,69 +51,168 @@ export default function DashboardScreen() {
     });
   }
 
-  const displayName = storeUser?.name ?? 'Loading…';
+  const displayName = storeUser?.name ?? (whoamiLoading ? 'Loading…' : 'Analyst');
 
-  const handleRetry = () => {
+  const handleRefresh = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['whoami'] });
-  };
+    void queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
+  }, [queryClient]);
+
+  const handleRetryWhoami = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['whoami'] });
+  }, [queryClient]);
+
+  const handleRetryOverview = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
+  }, [queryClient]);
+
+  const isLoading = whoamiLoading || overviewLoading;
+  const metrics: DashboardMetric[] = overview?.metrics ?? [];
+  const activity = overview?.activity ?? [];
+  const isEmpty = !isLoading && !overviewError && metrics.length === 0 && activity.length === 0;
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={[styles.scroll, { backgroundColor: theme.color.surface }]}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={isFetching && !isLoading}
+          onRefresh={handleRefresh}
+          tintColor={theme.color.action.primary}
+        />
+      }
+    >
+      {/* Greeting header */}
       {isLoading ? (
-        <View style={styles.skeleton}>
-          <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, styles.skeletonShort]} />
+        <View style={styles.skeletonHeader} testID="dashboard-skeleton">
+          <SkeletonBlock width="60%" />
+          <SkeletonBlock width="40%" />
         </View>
-      ) : isError ? (
-        <View style={styles.errorCard}>
-          <Text style={styles.errorText}>{mapErrorToBanner(error)}</Text>
-          <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
+      ) : (
+        <>
+          <Text style={[styles.greeting, { color: theme.color.text.primary }]}>
+            Hello, {displayName}
+          </Text>
+          {storeUser && (
+            <Text style={[styles.role, { color: theme.color.text.muted }]}>
+              {storeUser.roles.join(', ')}
+            </Text>
+          )}
+        </>
+      )}
+
+      {/* whoami error banner */}
+      {whoamiError && (
+        <View style={styles.errorCard} testID="whoami-error-banner">
+          <Text style={styles.errorText}>{mapErrorToBanner(whoamiErr)}</Text>
+          <TouchableOpacity onPress={handleRetryWhoami} style={styles.retryButton}>
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      ) : null}
+      )}
 
-      <Text style={styles.greeting}>Signed in as {displayName}</Text>
+      {/* Overview error banner */}
+      {overviewError && (
+        <View style={styles.errorCard} testID="overview-error-banner">
+          <Text style={styles.errorText}>{mapErrorToBanner(overviewErr)}</Text>
+          <TouchableOpacity onPress={handleRetryOverview} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {storeUser && (
+      {/* Metrics grid */}
+      {isLoading ? (
+        <View style={styles.metricsGrid} testID="metrics-skeleton">
+          {[0, 1, 2].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.skeletonCard,
+                { backgroundColor: theme.color.surfaceAlt, borderColor: theme.color.border },
+              ]}
+            />
+          ))}
+        </View>
+      ) : isEmpty ? (
+        <View style={styles.emptyState} testID="dashboard-empty">
+          <Text style={[styles.emptyText, { color: theme.color.text.muted }]}>Nothing to show yet.</Text>
+        </View>
+      ) : (
         <>
-          <Text style={styles.detail}>{storeUser.email}</Text>
-          <Text style={styles.detail}>Roles: {storeUser.roles.join(', ')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.color.text.secondary }]}>Overview</Text>
+          <View style={styles.metricsGrid} testID="metrics-grid">
+            {metrics.map((m, i) => (
+              <MetricCard key={i} metric={m} />
+            ))}
+          </View>
+
+          {activity.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: theme.color.text.secondary }]}>
+                Recent activity
+              </Text>
+              <View testID="activity-list">
+                {activity.map((a, i) => (
+                  <ActivityRow key={a.id ?? i} item={a} />
+                ))}
+              </View>
+            </>
+          )}
         </>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    padding: 24,
-    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 48,
+  },
+  skeletonHeader: {
+    marginBottom: 16,
   },
   greeting: {
     fontSize: 22,
-    fontWeight: '600',
-    color: '#111',
-    marginTop: 16,
+    fontWeight: '700',
+    marginBottom: 2,
   },
-  detail: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  skeleton: {
+  role: {
+    fontSize: 13,
     marginBottom: 16,
   },
-  skeletonLine: {
-    height: 20,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 4,
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 20,
     marginBottom: 8,
-    width: '70%',
   },
-  skeletonShort: {
-    width: '40%',
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  skeletonCard: {
+    flex: 1,
+    minWidth: '45%',
+    height: 80,
+    borderWidth: 1,
+    borderRadius: 10,
+    margin: 4,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  emptyText: {
+    fontSize: 15,
   },
   errorCard: {
     backgroundColor: '#fef2f2',
@@ -103,14 +227,10 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#b91c1c',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
   },
   retryText: {
-    color: '#fff',
+    color: '#1d4ed8',
     fontWeight: '600',
-    fontSize: 14,
   },
 });
+

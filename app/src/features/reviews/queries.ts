@@ -25,11 +25,22 @@ export function useWhoAmI() {
 /**
  * Fetch the review triage queue.
  * Real endpoint: GET /reviews/queue (not /reviews/search).
+ *
+ * Accepts optional `status` and `limit` params.
+ * - `status` is passed as-is to the server (default "new" is the backend default — omit to use it).
+ * - `limit` starts at 25 and can be bumped for progressive pagination.
+ * Query key includes both params so TanStack Query caches each combination separately.
  */
-export function useReviewsQueue() {
+export function useReviewsQueue(params: { status?: string; limit?: number } = {}) {
+  const { status, limit = 25 } = params;
   return useQuery({
-    queryKey: ['reviews-queue'],
-    queryFn: () => getApi().get('/reviews/queue', ReviewsQueue),
+    queryKey: ['reviews-queue', { status, limit }] as const,
+    queryFn: () => {
+      const qs = new URLSearchParams();
+      if (status !== undefined) qs.set('status', status);
+      qs.set('limit', String(limit));
+      return getApi().get(`/reviews/queue?${qs.toString()}`, ReviewsQueue);
+    },
     staleTime: 60_000,
   });
 }
