@@ -49,3 +49,6 @@ yarn-error.*
 # Generated design tokens (rebuilt by `make tokens`)
 src/design/tokens.ts
 
+# Test coverage output
+coverage/
+
