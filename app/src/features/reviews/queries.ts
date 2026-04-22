@@ -5,6 +5,7 @@ import {
   CaseDetail,
   DecisionRequest,
   DecisionResponse,
+  ReviewDetail,
   ReviewsQueue,
   WhoAmI,
 } from './types';
@@ -46,17 +47,45 @@ export function useReviewsQueue(params: { status?: string; limit?: number } = {}
 }
 
 /**
- * Fetch a single case detail.
- * TODO(sprint1-verify): Full case detail (summary/classification/timeline) may require
- * a separate /cases/{case_id} call in Sprint 2/3.
+ * Fetch a single review detail.
+ * Real endpoint: GET /reviews/{review_id} — returns ReviewDetail shape (camelCase).
+ * For full case data (description, timeline, artifacts) use useCaseFull.
  */
 export function useCase(id: string) {
   return useQuery({
-    queryKey: ['case', id],
-    queryFn: () => getApi().get(`/reviews/${id}`, CaseDetail),
+    queryKey: ['review-detail', id],
+    queryFn: () => getApi().get(`/reviews/${id}`, ReviewDetail),
     staleTime: 60_000,
     enabled: Boolean(id),
   });
+}
+
+/**
+ * Fetch extended case data from GET /cases/{case_id}.
+ * Returns description, timeline, artifacts, tags, campaigns.
+ */
+export function useCaseDetail(caseId: string) {
+  return useQuery({
+    queryKey: ['case-detail', caseId],
+    queryFn: () => getApi().get(`/cases/${caseId}`, CaseDetail),
+    staleTime: 60_000,
+    enabled: Boolean(caseId),
+  });
+}
+
+/**
+ * Fan-out hook that combines review detail, case detail, and audit log.
+ * Returns per-section query results so the Case Detail screen can render
+ * each section independently with its own loading/error state.
+ *
+ * Sequence: review is fetched first; caseId from review enables case-detail fetch.
+ */
+export function useCaseFull(reviewId: string) {
+  const review = useCase(reviewId);
+  const caseId = review.data?.caseId ?? '';
+  const caseDetail = useCaseDetail(caseId);
+  const audit = useAuditLog(reviewId);
+  return { review, caseDetail, audit };
 }
 
 /**
@@ -82,10 +111,10 @@ export function useDecide(reviewId: string) {
     mutationFn: (body: DecisionRequest) =>
       getApi().post(`/reviews/${reviewId}/decision`, body, DecisionResponse),
     onMutate: async (body) => {
-      await qc.cancelQueries({ queryKey: ['case', reviewId] });
-      const prev = qc.getQueryData<CaseDetail>(['case', reviewId]);
+      await qc.cancelQueries({ queryKey: ['review-detail', reviewId] });
+      const prev = qc.getQueryData<ReviewDetail>(['review-detail', reviewId]);
       if (prev) {
-        qc.setQueryData(['case', reviewId], {
+        qc.setQueryData(['review-detail', reviewId], {
           ...prev,
           status: body.decision === 'approve' ? 'approved' : 'rejected',
         });
@@ -93,11 +122,11 @@ export function useDecide(reviewId: string) {
       return { prev };
     },
     onError: (_err, _body, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['case', reviewId], ctx.prev);
+      if (ctx?.prev) qc.setQueryData(['review-detail', reviewId], ctx.prev);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['reviews-queue'] });
-      qc.invalidateQueries({ queryKey: ['case', reviewId] });
+      qc.invalidateQueries({ queryKey: ['review-detail', reviewId] });
     },
   });
 }

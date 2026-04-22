@@ -77,34 +77,68 @@ export type ReviewStatus = z.infer<typeof ReviewStatus>;
 export const ReviewSummary = ReviewQueueItem;
 export type ReviewSummary = ReviewQueueItem;
 
-// TODO(sprint1-verify): CaseDetail — full shape requires /cases/{case_id} exploration in Sprint 2/3.
-export const CaseDetail = ReviewDetail.extend({
-  summary: z.string().optional(),
-  classification: z
+// ---------------------------------------------------------------------------
+// Case Artifact — embedded in CaseDetail.artifacts
+// ---------------------------------------------------------------------------
+export const CaseArtifact = z.object({
+  id: z.string(),
+  type: z.string(),
+  name: z.string(),
+  url: z.string(),
+  metadata: z
     .object({
-      taxonomy: z.array(z.string()),
-      confidence: z.number().min(0).max(1),
+      mime_type: z.string().nullable().optional(),
+      source_url: z.string().nullable().optional(),
     })
     .optional(),
-  timeline: z
+});
+export type CaseArtifact = z.infer<typeof CaseArtifact>;
+
+// ---------------------------------------------------------------------------
+// Case Timeline Entry — embedded in CaseDetail.timeline
+// ---------------------------------------------------------------------------
+export const CaseTimelineEntry = z.object({
+  id: z.string(),
+  timestamp: z.string(),
+  description: z.string(),
+  actor: z.string(),
+  type: z.string(),
+});
+export type CaseTimelineEntry = z.infer<typeof CaseTimelineEntry>;
+
+// ---------------------------------------------------------------------------
+// CaseDetail — GET /cases/{case_id}
+// Verified against i4g-local on 2026-04-22. See sprint3-endpoint-verification.md.
+// camelCase/snake_case mixed per server — schemas follow server literally.
+// `description` is the narrative summary; `tags` encode classification labels.
+// ---------------------------------------------------------------------------
+export const CaseDetail = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: z.string(),
+  priority: ReviewPriority,
+  assignee: z.string().nullable().optional(),
+  updatedAt: z.string(),
+  queue: z.string().optional(),
+  tags: z.array(z.string()).optional().default([]),
+  progress: z.unknown().nullable().optional(),
+  dueAt: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  entities: z.array(z.unknown()).optional().default([]),
+  artifacts: z.array(CaseArtifact).optional().default([]),
+  timeline: z.array(CaseTimelineEntry).optional().default([]),
+  graphNodes: z.array(z.unknown()).optional().default([]),
+  graphLinks: z.array(z.unknown()).optional().default([]),
+  investigations: z.array(z.unknown()).optional().default([]),
+  campaigns: z
     .array(
       z.object({
-        ts: z.string(),
-        kind: z.string(),
-        message: z.string(),
+        id: z.string(),
+        name: z.string(),
       }),
     )
-    .optional(),
-  audit: z
-    .array(
-      z.object({
-        ts: z.string(),
-        actor: z.string(),
-        action: z.string(),
-        target: z.string(),
-      }),
-    )
-    .optional(),
+    .optional()
+    .default([]),
 });
 export type CaseDetail = z.infer<typeof CaseDetail>;
 

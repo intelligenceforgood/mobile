@@ -24,3 +24,55 @@ appId: com.i4g.mobile
 - assertVisible:
     id: 'load-more'
     timeout: 8000
+
+# ── Sprint 3: Queue → Case Detail → Evidence → Report ──────────────────────
+
+# Tap the first queue row to navigate to Case Detail
+- tapOn:
+    id: 'queue-row'
+    index: 0
+
+# Case Detail should load — assert header section is visible
+- assertVisible:
+    id: 'case-detail-screen'
+    timeout: 8000
+
+- assertVisible:
+    id: 'case-header'
+    timeout: 5000
+
+# Evidence grid should appear (may be empty if no evidence seeded — that's OK)
+- assertVisible:
+    id: 'evidence-grid'
+    timeout: 5000
+
+# Tap the first evidence tile if present
+- tapOn:
+    id: 'evidence-tile'
+    index: 0
+    optional: true
+
+# If we navigated to Evidence Detail, assert it loaded
+- assertVisible:
+    id: 'evidence-detail-screen'
+    timeout: 5000
+    optional: true
+
+# Go back to Case Detail
+- back
+
+# Assert Case Detail is still visible after back navigation
+- assertVisible:
+    id: 'case-detail-screen'
+    timeout: 5000
+
+# Tap "View Report" if visible (only shown when a report exists)
+- tapOn:
+    id: 'view-report'
+    optional: true
+
+# If Report screen opened, assert it rendered
+- assertVisible:
+    id: 'report-screen'
+    timeout: 5000
+    optional: true

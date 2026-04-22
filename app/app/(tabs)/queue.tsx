@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { mapErrorToBanner } from '@/api/errors';
 import { useTheme } from '@/design/theme';
 import { FilterBar } from '@/features/reviews/components/FilterBar';
@@ -37,6 +38,7 @@ const skStyles = StyleSheet.create({
 export default function QueueScreen() {
   const theme = useTheme();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const listRef = useRef<FlatList<ReviewQueueItem> | null>(null);
 
   const [filter, setFilter] = useState<FilterBarValue>({ status: undefined, priority: undefined });
@@ -80,6 +82,13 @@ export default function QueueScreen() {
     void queryClient.invalidateQueries({ queryKey: ['reviews-queue', { status: filter.status, limit }] });
   }, [queryClient, filter.status, limit]);
 
+  const handleRowPress = useCallback(
+    (item: ReviewQueueItem) => {
+      router.push(`/case/${item.review_id}`);
+    },
+    [router],
+  );
+
   const canLoadMore = items.length >= limit;
 
   return (
@@ -113,7 +122,11 @@ export default function QueueScreen() {
           ref={listRef}
           data={visibleItems}
           keyExtractor={(item) => item.review_id}
-          renderItem={({ item }) => <QueueRow item={item} />}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleRowPress(item)} testID={`queue-row-${item.review_id}`}>
+              <QueueRow item={item} />
+            </TouchableOpacity>
+          )}
           onScroll={handleScroll}
           scrollEventThrottle={200}
           refreshControl={
