@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   statusText: { fontSize: 14, textAlign: 'center', marginBottom: 8 },
   subText: { fontSize: 12, textAlign: 'center' },
-  errorText: { color: tokens.themes.default.color.error.textStrong, fontSize: 14, textAlign: 'center', marginBottom: 12 },
+  errorText: { color: tokens.themes.default.color.action.destructive, fontSize: 14, textAlign: 'center', marginBottom: 12 },
   retryButton: { marginTop: 8 },
   retryText: { fontSize: 14, fontWeight: '600' },
   pdf: { flex: 1, width: '100%' },

@@ -54,25 +54,25 @@ export class SectionErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const { error: ec } = tokens.themes.default.color;
+const { color: tc } = tokens.themes.default;
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: ec.border,
-    backgroundColor: ec.background,
+    borderColor: tc.border,
+    backgroundColor: tc.surfaceAlt,
     padding: 12,
     marginVertical: 4,
   },
   title: {
-    color: ec.text,
+    color: tc.text.secondary,
     fontWeight: '600',
     fontSize: 13,
     marginBottom: 4,
   },
   message: {
-    color: ec.textStrong,
+    color: tc.action.destructive,
     fontSize: 12,
   },
   retryButton: {
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 6,
-    backgroundColor: ec.buttonBackground,
+    backgroundColor: tc.action.primary,
   },
   retryText: {
-    color: ec.buttonText,
+    color: tc.text.primary,
     fontSize: 12,
     fontWeight: '600',
   },

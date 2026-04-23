@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   sectionLoading: { paddingVertical: 16, alignItems: 'center' },
   inlineError: { paddingVertical: 8 },
-  inlineErrorText: { color: tokens.themes.default.color.error.textStrong, fontSize: 13, marginBottom: 6 },
+  inlineErrorText: { color: tokens.themes.default.color.action.destructive, fontSize: 13, marginBottom: 6 },
   inlineRetry: { color: tokens.themes.default.color.action.primary, fontSize: 12 },
   reportButton: {
     borderRadius: 10,
@@ -269,5 +269,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  reportButtonText: { color: tokens.themes.default.color.on.badge, fontWeight: '600', fontSize: 15 },
+  reportButtonText: { color: tokens.themes.default.color.text.primary, fontWeight: '600', fontSize: 15 },
 });
