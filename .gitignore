@@ -1,0 +1,4 @@
+# Build artifacts — large files, never committed
+*.tar.gz
+docker/android-demo/app.apk
+dist/
