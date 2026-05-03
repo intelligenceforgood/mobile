@@ -1,6 +1,12 @@
-# Copilot Instructions for i4g/mobile
+# Gemini Code Assist Context for i4g/mobile
 
-**Unified Workspace Context:** This repository is part of the `i4g` multi-root workspace. Shared coding standards, routines, and platform context live in the `copilot/` repo. These instructions contain only repo-specific context.
+**Unified Workspace Context:** This repository is part of the `i4g` multi-root workspace. Shared coding standards, routines, and platform context live in the `gemini` repo's styles directory. These instructions contain only repo-specific context.
+
+## GCA Framework & Workflows
+
+- **Agent Mode Management:** Keep Agent Mode **OFF** for standard queries, isolated code reviews, and planning to conserve quota. Toggle **ON** strictly for autonomous multi-file execution or terminal tasks.
+- **Standardized Prompts:** Use the standard VSCode snippets (`gca-plan`, `gca-prd`, `gca-impl`, `gca-work`) to trigger routine workflows.
+- **Global Standards:** Broad coding conventions are referenced from `.gemini/styles/` (symlinked to the `gemini` repository).
 
 ## Purpose
 
@@ -35,4 +41,3 @@ mobile/
 cd shared/design-tokens
 node scripts/build.js     # Builds all platform outputs
 ```
-
