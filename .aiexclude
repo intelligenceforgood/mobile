@@ -1,0 +1,89 @@
+# ==========================================
+# Android & Gradle
+# ==========================================
+.gradle/
+build/
+*/build/
+gradle/wrapper/*.jar
+.cxx/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+local.properties
+
+# ==========================================
+# iOS, Xcode & Swift
+# ==========================================
+DerivedData/
+Pods/
+.build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ==========================================
+# Ruby & Fastlane
+# ==========================================
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# ==========================================
+# IDEs, OS, and General
+# ==========================================
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Secrets & Signing (Keystores/Certificates)
+# ==========================================
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+*.cer
+*.cert
+*.pem
+.env
+.env.*
+
+# ==========================================
+# Media, Assets, and Large Binaries
+# ==========================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.mp3
+*.mp4
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.pdf
+*.zip
+*.tar.gz
+*.sqlite
+*.db
