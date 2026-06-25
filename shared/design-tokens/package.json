@@ -11,12 +11,12 @@
     "ci": "npm run lint && npm run build"
   },
   "dependencies": {
-    "style-dictionary": "^3.8.0"
+    "style-dictionary": "^5.4.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.20",
-    "eslint": "^8.57.0",
+    "@types/node": "^22.13.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.10"
   }
 }

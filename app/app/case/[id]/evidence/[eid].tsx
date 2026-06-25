@@ -62,7 +62,7 @@ export default function EvidenceDetailScreen() {
   const { data: doc, isLoading, isError, refetch } = useEvidenceItem(caseId, documentId ?? '');
 
   // Pinch-to-zoom state
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = useState(() => new Animated.Value(1));
   const lastScale = useRef(1);
   const [hasError, setHasError] = useState(false);
 
